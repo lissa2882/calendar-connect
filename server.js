@@ -1,15 +1,16 @@
-const calendarConfig = require('./calendarConfig');
-
 const express = require('express');
-const { google } = require('googleapis');
 const session = require('express-session');
+const { google } = require('googleapis');
+const calendarConfig = require('./calendarConfig');
+require('dotenv').config();
+
 const app = express();
 
-const CLIENT_ID = '663330082201-rj27f2rvfcc9oaciluc01l71hab3ur38.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URI = 'http://localhost:3000/oauth2callback';
-
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  process.env.REDIRECT_URI
+);
 
 app.use(session({
   secret: 'calendar_secret',
@@ -61,7 +62,8 @@ app.get('/events', async (req, res) => {
       return res.redirect('/');
     }
   }
-    oauth2Client.setCredentials(req.session.tokens);
+
+  oauth2Client.setCredentials(req.session.tokens);
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
   const { calendarId, all, start, end, keyword, format } = req.query;
@@ -126,7 +128,6 @@ app.get('/calendar-grid', (req, res) => {
           <p class="mt-4"><a href="/calendars" class="text-blue-600 underline">← Back to Calendar Picker</a></p>
         </div>
 
-        <!-- Load FullCalendar script LAST -->
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.js"></script>
         <script>
           window.addEventListener('load', function () {
@@ -151,5 +152,5 @@ app.get('/calendar-grid', (req, res) => {
   `);
 });
 
-
-app.listen(3000, () => console.log('🌍 App running at http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🌍 App running on port ${PORT}`));
